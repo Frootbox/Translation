@@ -1,0 +1,17 @@
+{
+    "name": "frootbox/translation",
+    "description": "Frootbox Translation Component",
+    "support": {
+        "docs": "",
+        "email": "jan.habbo.bruening@gmail.com"
+    },
+    "authors": [
+        {
+            "name": "Jan Habbo Brüning",
+            "email": "jan.habbo.bruening@gmail.com"
+        }
+    ],
+    "autoload": {
+    	"psr-4": { "Frootbox\\Translation\\": "src/" }
+    }
+}
