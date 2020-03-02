@@ -5,72 +5,20 @@
 
 namespace Frootbox\Translation;
 
-class Translator {
-
-    protected $data;
-    protected $scope;
-
-
-    /**
-     *
-     */
-    public function getData ( ): array
-    {
-        return $this->data;
-    }
-
+class Translator
+{
+    private $data;
+    private $scope;
+    private $notOverwritables = [ ];
 
     /**
      *
      */
-    public function addResource ( $path, $scope = 'global' ): Translator {
-
-        $data = require $path;
-
-        foreach ($data as $key => $value) {
-            $this->data[$scope . '.' . $key] = $value;
-        }
-
-        return $this;
-    }
-
-
-    /**
-     *
-     */
-    public function setData ( array $data ): Translator
+    private function getPhrase($key): string
     {
-        $this->data = $data;
+        // Force key to be PascalCase
+        $key = ucfirst($key);
 
-        return $this;
-    }
-
-
-    /**
-     *
-     */
-    public function setLanguage ( $language ): Translator
-    {
-        return $this;
-    }
-
-
-    /**
-     * Set translators current scope
-     */
-    public function setScope ( $scope ): Translator
-    {
-        $this->scope = $scope;
-
-        return $this;
-    }
-
-
-    /**
-     *
-     */
-    public function translate ( $key ): ?string
-    {
         if (array_key_exists($key, $this->data)) {
             return $this->data[$key];
         }
@@ -89,6 +37,142 @@ class Translator {
             array_pop($segments);
         }
 
-        return null;
+        return $key;
+    }
+
+    /**
+     *
+     */
+    private function parseInset($inset): ?string
+    {
+        if (substr($inset, 0, 2) != 'T:') {
+            return $inset;
+        }
+
+        return $this->getPhrase(substr($inset, 2));
+    }
+
+    /**
+     *
+     */
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     *
+     */
+    public function addResource($path, $scope = null): Translator {
+
+        if ($scope === null) {
+            $scope = $this->scope;
+        }
+
+        $data = require $path;
+        $notOverwrite = false;
+
+        foreach ($data as $key => $value) {
+
+            if ($key{0} == '!') {
+                $key = substr($key, 1);
+                $notOverwrite = true;
+            }
+
+            if ($key{0} == '\\' OR $key{0} == '.') {
+                $key = substr($key, 1);
+            }
+            else if (!empty($scope)) {
+                $key = $scope . '.' . $key;
+            }
+
+            if ($notOverwrite or !in_array($key, $this->notOverwritables)) {
+                $this->data[$key] = $value;
+
+                if ($notOverwrite) {
+                    $this->notOverwritables[] = $key;
+                    $notOverwrite = false;
+                }
+            }
+        }
+
+        ksort($this->data);
+
+        return $this;
+    }
+
+    /**
+     *
+     */
+    public function setData(array $data): Translator
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     *
+     */
+    public function setLanguage($language): Translator
+    {
+        return $this;
+    }
+
+    /**
+     * Set translators current scope
+     */
+    public function setScope($scope): Translator
+    {
+        $this->scope = $scope;
+
+        return $this;
+    }
+
+    /**
+     * Request translation of a given translation key
+     *
+     */
+    public function translate($key, array $insets = null): string
+    {
+        // Obtain phrase from translations
+        $phrase = $this->getPhrase($key);
+
+        if (!empty($insets)) {
+
+            // Replace [link] pattern
+            if (preg_match('#\[(?<linkTitle>.*?)\]#', $phrase, $match)) {
+                $phrase = str_replace($match[0], '<a href="' . array_shift($insets) . '">' . $match['linkTitle'] . '</a>', $phrase);
+            }
+
+            switch (count($insets)) {
+                case 1:
+                    $phrase = sprintf($phrase, $this->parseInset($insets[0]));
+                    break;
+
+                case 2:
+                    $phrase = sprintf($phrase, $this->parseInset($insets[0]), $this->parseInset($insets[1]));
+                    break;
+            }
+        }
+
+        // Remove unused [link] tags
+        $phrase = preg_replace('#\[(.*?)\]#', '\\1', $phrase);
+
+        return $phrase;
+    }
+
+    /**
+     *
+     */
+    public function translateDate(
+        string $dateString,
+        string $formatString
+    ): string
+    {
+        $date = new \Frootbox\Dates\Date($dateString);
+        $key = $date->format($formatString);
+
+        return $this->translate($key);
     }
 }
