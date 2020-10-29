@@ -57,7 +57,7 @@ class Translator
      */
     public function getData(): array
     {
-        return $this->data;
+        return $this->data ?? [];
     }
 
     /**
@@ -69,17 +69,21 @@ class Translator
             $scope = $this->scope;
         }
 
+        if (!file_exists($path)) {
+            return $this;
+        }
+
         $data = require $path;
         $notOverwrite = false;
 
         foreach ($data as $key => $value) {
 
-            if ($key{0} == '!') {
+            if ($key[0] == '!') {
                 $key = substr($key, 1);
                 $notOverwrite = true;
             }
 
-            if ($key{0} == '\\' OR $key{0} == '.') {
+            if ($key[0] == '\\' OR $key[0] == '.') {
                 $key = substr($key, 1);
             }
             else if (!empty($scope)) {
@@ -142,7 +146,15 @@ class Translator
 
             // Replace [link] pattern
             if (preg_match('#\[(?<linkTitle>.*?)\]#', $phrase, $match)) {
-                $phrase = str_replace($match[0], '<a href="' . array_shift($insets) . '">' . $match['linkTitle'] . '</a>', $phrase);
+
+                $attributes = (string) null;
+
+                if ($match['linkTitle'][0] == '^') {
+                    $match['linkTitle'] = substr($match['linkTitle'], 1);
+                    $attributes .= ' target="_blank" ';
+                }
+
+                $phrase = str_replace($match[0], '<a ' . $attributes . ' href="' . array_shift($insets) . '">' . $match['linkTitle'] . '</a>', $phrase);
             }
 
             switch (count($insets)) {
