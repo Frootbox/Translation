@@ -55,15 +55,7 @@ class Translator
     /**
      *
      */
-    public function getData(): array
-    {
-        return $this->data ?? [];
-    }
-
-    /**
-     *
-     */
-    public function addResource($path, $scope = null): Translator {
+    public function addResource($path, $scope = null, $allowOverwrite = true): Translator {
 
         if ($scope === null) {
             $scope = $this->scope;
@@ -90,6 +82,10 @@ class Translator
                 $key = $scope . '.' . $key;
             }
 
+            if (!$allowOverwrite and !empty($this->data[$key])) {
+                continue;
+            }
+
             if ($notOverwrite or !in_array($key, $this->notOverwritables)) {
                 $this->data[$key] = $value;
 
@@ -103,6 +99,44 @@ class Translator
         ksort($this->data);
 
         return $this;
+    }
+
+    /**
+     *
+     */
+    public function getData(): array
+    {
+        return $this->data ?? [];
+    }
+
+    /**
+     *
+     */
+    public function hasKey(string $key): bool
+    {
+        // Force key to be PascalCase
+        $key = ucfirst($key);
+
+        if (array_key_exists($key, $this->data)) {
+            return true;
+        }
+
+        $segments = explode('.', $this->scope);
+        $loops = count($segments);
+
+        for ($i = 0; $i < $loops; ++$i) {
+
+            $nkey = implode('.', $segments) . '.' . $key;
+
+            if (array_key_exists($nkey, $this->data)) {
+                return true;
+            }
+
+            array_pop($segments);
+        }
+
+        return false;
+
     }
 
     /**
@@ -171,6 +205,12 @@ class Translator
         // Remove unused [link] tags
         $phrase = preg_replace('#\[(.*?)\]#', '\\1', $phrase);
 
+
+        if ($key == 'Core.Forms.Captchas.SimpleMathChallenge.ShowUs') {
+
+           // d($this);
+
+        }
         return $phrase;
     }
 
