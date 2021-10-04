@@ -171,7 +171,7 @@ class Translator
      * Request translation of a given translation key
      *
      */
-    public function translate($key, array $insets = null): string
+    public function translate($key, array $insets = null, $default = null): string
     {
         // Obtain phrase from translations
         $phrase = $this->getPhrase($key);
@@ -205,12 +205,10 @@ class Translator
         // Remove unused [link] tags
         $phrase = preg_replace('#\[(.*?)\]#', '\\1', $phrase);
 
-
-        if ($key == 'Core.Forms.Captchas.SimpleMathChallenge.ShowUs') {
-
-           // d($this);
-
+        if ($phrase == $key and !empty($default)) {
+            $phrase = $default;
         }
+
         return $phrase;
     }
 
