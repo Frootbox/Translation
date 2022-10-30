@@ -199,6 +199,10 @@ class Translator
                 case 2:
                     $phrase = sprintf($phrase, $this->parseInset($insets[0]), $this->parseInset($insets[1]));
                     break;
+
+                case 3:
+                    $phrase = sprintf($phrase, $this->parseInset($insets[0]), $this->parseInset($insets[1]), $this->parseInset($insets[2]));
+                    break;
             }
         }
 
