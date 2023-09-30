@@ -12,7 +12,8 @@ class Translator
     private $notOverwritables = [ ];
 
     /**
-     *
+     * @param $key
+     * @return string
      */
     private function getPhrase($key): string
     {
@@ -41,7 +42,8 @@ class Translator
     }
 
     /**
-     *
+     * @param $inset
+     * @return string|null
      */
     private function parseInset($inset): ?string
     {
@@ -53,7 +55,10 @@ class Translator
     }
 
     /**
-     *
+     * @param $path
+     * @param $scope
+     * @param $allowOverwrite
+     * @return $this
      */
     public function addResource($path, $scope = null, $allowOverwrite = true): Translator {
 
@@ -102,7 +107,7 @@ class Translator
     }
 
     /**
-     *
+     * @return array
      */
     public function getData(): array
     {
@@ -110,7 +115,8 @@ class Translator
     }
 
     /**
-     *
+     * @param string $key
+     * @return bool
      */
     public function hasKey(string $key): bool
     {
@@ -140,7 +146,8 @@ class Translator
     }
 
     /**
-     *
+     * @param array $data
+     * @return $this
      */
     public function setData(array $data): Translator
     {
@@ -150,7 +157,8 @@ class Translator
     }
 
     /**
-     *
+     * @param $language
+     * @return $this
      */
     public function setLanguage($language): Translator
     {
@@ -170,6 +178,10 @@ class Translator
     /**
      * Request translation of a given translation key
      *
+     * @param $key
+     * @param array|null $insets
+     * @param $default
+     * @return string
      */
     public function translate($key, array $insets = null, $default = null): string
     {
@@ -217,7 +229,9 @@ class Translator
     }
 
     /**
-     *
+     * @param string $dateString
+     * @param string $formatString
+     * @return string
      */
     public function translateDate(
         string $dateString,
